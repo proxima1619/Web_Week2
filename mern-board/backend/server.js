@@ -23,3 +23,32 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const Post = require('./models/Post');
+
+app.get('/api/posts', async (req, res) => {
+  const posts = await Post.find().sort({ createdAt: -1 });
+  res.json(posts);
+});
+
+app.post('/api/posts', async (req, res) => {
+  const { title, content, secret } = req.body;
+  const newPost = new Post({ title, content, secret });
+  await newPost.save();
+  res.json(newPost);
+});
+
+app.put('/api/posts/:id', async (req, res) => {
+  const { title, content, secret } = req.body;
+  const updatedPost = await Post.findByIdAndUpdate(
+    req.params.id,
+    { title, content, secret },
+    { new: true }
+  );
+  res.json(updatedPost);
+});
+
+app.delete('/api/posts/:id', async (req, res) => {
+  await Post.findByIdAndDelete(req.params.id);
+  res.json({ msg: 'Post deleted' });
+});
