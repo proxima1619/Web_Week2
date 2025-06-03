@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // 테스트용 라우터
 app.get('/', (req, res) => {
-  res.send('백엔드 서버 연결 완료!');
+  res.send('연결됐죠?');
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

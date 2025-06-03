@@ -1,0 +1,14 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5001:5000"  # 5000 이미 쓰는 중
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/board_db
+      - JWT_SECRET=supersecret
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
