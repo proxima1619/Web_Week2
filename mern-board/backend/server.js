@@ -1,3 +1,4 @@
+const verifyToken = require('./middleware/verifyToken');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -31,9 +32,14 @@ app.get('/api/posts', async (req, res) => {
   res.json(posts);
 });
 
-app.post('/api/posts', async (req, res) => {
+app.post('/api/posts', verifyToken, async (req, res) => {
   const { title, content, secret } = req.body;
-  const newPost = new Post({ title, content, secret });
+  const newPost = new Post({
+    title,
+    content,
+    secret,
+    author: req.user.username  
+  });
   await newPost.save();
   res.json(newPost);
 });
@@ -48,9 +54,18 @@ app.put('/api/posts/:id', async (req, res) => {
   res.json(updatedPost);
 });
 
-app.delete('/api/posts/:id', async (req, res) => {
-  await Post.findByIdAndDelete(req.params.id);
-  res.json({ msg: 'Post deleted' });
+app.delete('/api/posts/:id', verifyToken, async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) return res.status(404).json({ msg: '글을 찾을 수 없습니다' });
+
+  // 작성자 확인
+  if (post.author !== req.user.username && !req.user.isAdmin) {
+    return res.status(403).json({ msg: '삭제 권한이 없습니다' });
+  }
+
+  await post.deleteOne();
+  res.json({ msg: '삭제 완료' });
 });
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
