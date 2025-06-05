@@ -29,13 +29,21 @@ function App() {
   }, []);
 
   useEffect(() => {
-    axios.get('http://localhost:5001/api/posts')
-      .then(res => setPosts(res.data));
+    const interval = setInterval(() => {
+      axios.get('http://localhost:5001/api/posts')
+        .then(res => setPosts(res.data));
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUsers = async () => {
     const res = await axios.get('http://localhost:5001/api/auth/users');
     setUsers(res.data);
+  };
+
+  const toggleAdmin = async (id, current) => {
+    const res = await axios.put(`http://localhost:5001/api/auth/toggle-admin/${id}`);
+    setUsers(users.map(user => user._id === id ? { ...user, isAdmin: res.data.isAdmin } : user));
   };
 
   const handleSubmit = async () => {
@@ -95,11 +103,18 @@ function App() {
               </button>
               {showAdminPanel && (
                 <div style={{ border: '1px solid gray', padding: 10, marginTop: 10 }}>
-                  <h3>📋 관리자 패널</h3>
+                  <h3>👑 관리자 패널</h3>
                   <h4>회원 목록</h4>
                   <ul>
                     {users.map(user => (
-                      <li key={user._id}>{user.username} {user.isAdmin && '☑️'}</li>
+                      <li key={user._id}>
+                        {user.username} {user.isAdmin && '✅'}
+                        {user.username !== username && (
+                          <button style={{ marginLeft: 10 }} onClick={() => toggleAdmin(user._id, user.isAdmin)}>
+                            {user.isAdmin ? '관리자 권한 회수' : '관리자 권한 부여'}
+                          </button>
+                        )}
+                      </li>
                     ))}
                   </ul>
                 </div>
