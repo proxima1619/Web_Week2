@@ -15,6 +15,8 @@ function App() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editSecret, setEditSecret] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   useEffect(() => {
     axios.get('http://localhost:5001/api/auth/me')
@@ -30,6 +32,11 @@ function App() {
     axios.get('http://localhost:5001/api/posts')
       .then(res => setPosts(res.data));
   }, []);
+
+  const fetchUsers = async () => {
+    const res = await axios.get('http://localhost:5001/api/auth/users');
+    setUsers(res.data);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -78,6 +85,27 @@ function App() {
         <>
           <p>👤 {username}님 환영합니다!</p>
           <button onClick={handleLogout}>로그아웃</button>
+          {isAdmin && (
+            <>
+              <button onClick={() => {
+                setShowAdminPanel(!showAdminPanel);
+                if (!showAdminPanel) fetchUsers();
+              }}>
+                {showAdminPanel ? '관리자 패널 닫기' : '관리자 패널 열기'}
+              </button>
+              {showAdminPanel && (
+                <div style={{ border: '1px solid gray', padding: 10, marginTop: 10 }}>
+                  <h3>📋 관리자 패널</h3>
+                  <h4>회원 목록</h4>
+                  <ul>
+                    {users.map(user => (
+                      <li key={user._id}>{user.username} {user.isAdmin && '☑️'}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
           <hr />
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="제목" /><br />
           <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="내용" /><br />
